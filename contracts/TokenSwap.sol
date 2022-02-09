@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.10;
 
-import "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/v4.0.0/contracts/token/ERC20/IERC20.sol";
+import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "./KRL.sol";
-import "./BMC.sol";
+import "./BlueMonsterCoin.sol";
 
 contract TokenSwap {
     IERC20 public BMC;
@@ -19,12 +19,12 @@ contract TokenSwap {
 
     constructor(address _KRL, address _BMC) {
         admin = payable(msg.sender);
-        krl = KRL(_krl);
-        bmc = BMC(_bmc);
+        KRL = IERC20(_KRL);
+        BMC = IERC20(_BMC);
         //due to openzeppelin implementation, transferFrom function implementation expects _msgSender() to be the beneficiary from the caller
         // but in this use cae we are using this contract to transfer so its always checking the allowance of SELF
-        krl.approve(address(this), bmc.totalSupply());
-        bmc.approve(address(this), krl.totalSupply());
+        KRL.approve(address(this), BMC.totalSupply());
+        BMC.approve(address(this), KRL.totalSupply());
     }
 
     modifier onlyAdmin() {
@@ -41,7 +41,7 @@ contract TokenSwap {
         // check if current contract has the necessary amout of Tokens to exchange
         require(amountKRL > 0, "amountTKA must be greater then zero");
         require(
-            krl.balanceOf(msg.sender) >= amountKRL,
+            KRL.balanceOf(msg.sender) >= amountKRL,
             "sender doesn't have enough Tokens"
         );
 
@@ -54,13 +54,13 @@ contract TokenSwap {
         );
 
         require(
-            bmc.balanceOf(address(this)) > exchangeAmount,
-            "currently the exchange doesnt have enough XYZ Tokens, please retry later :=("
+            BMC.balanceOf(address(this)) > exchangeAmount,
+            "currently the exchange doesnt have enough BMC Tokens, please retry later :=("
         );
 
-        krl.transferFrom(msg.sender, address(this), amountKRL);
-        bmc.approve(address(msg.sender), exchangeAmount);
-        bmc.transferFrom(
+        KRL.transferFrom(msg.sender, address(this), amountKRL);
+        BMC.approve(address(msg.sender), exchangeAmount);
+        BMC.transferFrom(
             address(this),
             address(msg.sender),
             exchangeAmount
